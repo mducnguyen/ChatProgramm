@@ -44,7 +44,7 @@ public class ChatServer
         System.out.print(msg);
 
         for(ClientThread client : clients ){
-
+            client.writeToClient(msg);
         }
     }
     public synchronized void addClient(ClientThread clientThread){
@@ -101,7 +101,7 @@ public class ChatServer
 
     public static void main(String[] args) {
       /* Erzeuge Server und starte ihn */
-        ChatServer myServer = new ChatServer(1234);
+        ChatServer myServer = new ChatServer(56789);
         myServer.startServer();
     }
 
@@ -124,7 +124,7 @@ public class ChatServer
             this.clientSocket = clientSk;
 
             try {
-                this.inFromClient = new BufferedReader(new InputStreamReader(clientSk.getInputStream()));
+                this.inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 this.outToClient = new DataOutputStream(clientSk.getOutputStream());
                 this.username = inFromClient.readLine();
                 System.out.println(username + "has just joined chatroom.");
@@ -154,7 +154,9 @@ public class ChatServer
                 }
 
                 if(chatMessage.equalsIgnoreCase("LOGOUT.")){
-                    System.out.println(username + " has leave the room with LOGOUT. message.");
+                    String msg = username + " has left the room with LOGOUT. message.";
+                    System.out.println(msg);
+                    broadcast(msg);
                     isLogoutRequested = true;
                 }else{
                     broadcast(username + ": " + chatMessage);

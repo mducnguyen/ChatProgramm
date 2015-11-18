@@ -45,12 +45,12 @@ public class ChatClient
             clientSocket = new Socket(hostname, serverPort);
             System.out.println("Connection established " + clientSocket.getInetAddress() + ":" + clientSocket.getPort());
 
-            inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            outToServer = new DataOutputStream(clientSocket.getOutputStream());
+            this.inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            this.outToServer = new DataOutputStream(clientSocket.getOutputStream());
 
             new ListenFromServer().start();
 
-            outToServer.writeBytes(this.clientName);
+            sendToServer(this.clientName);
 
             isLoggedOut = false;
         } catch (IOException e) {
@@ -67,10 +67,12 @@ public class ChatClient
 
             if (chatMsg.equalsIgnoreCase("LOGOUT.")) {
                 isLoggedOut = true;
-                sendToServer("LOGOUT.");
+//                logOut();
             }
-        }
 
+            sendToServer(chatMsg);
+
+        }
         logOut();
     }
 
@@ -82,6 +84,7 @@ public class ChatClient
             System.out.println("Exception writing to server: " + e);
         }
     }
+
 
     private void logOut()
     {
@@ -102,35 +105,12 @@ public class ChatClient
         String inStr = "";
 
         /* Default Werte */
-        int portNummer = 1234;
+        int portNummer = 56789;
         String hostname = "localhost";
         String username = "someone";
 
         switch (args.length) {
             // > javac Client username portNumber serverAddr
-            case 0:
-                System.out.print("Username: ");
-                inStr = inFromUser.nextLine();
-                if (!inStr.equals("")) username = inStr;
-                System.out.print("Hostname: ");
-                inStr = inFromUser.nextLine();
-                if (!inStr.equals("")) hostname = inStr;
-                System.out.print("Port number: ");
-                inStr = inFromUser.nextLine();
-                boolean valid = false;
-                while (!valid) {
-                    if (!inStr.equals("")) {
-                        try {
-                            portNummer = Integer.parseInt(inStr);
-                            valid = true;
-                        } catch (Exception e) {
-                            System.out.println("Invalid port number.");
-                            System.out.print("Port number: ");
-                            inStr = inFromUser.nextLine();
-                        }
-                    }
-                }
-                break;
             case 3:
                 hostname = args[2];
                 // > javac Client username portNumber
@@ -147,14 +127,17 @@ public class ChatClient
                 username = args[0];
                 // > java Client
                 break;
-                // invalid number of arguments
+            // invalid number of arguments
+            case 0:
+
+                break;
             default:
                 System.out.println("Usage is: > java Client [username] [portNumber] {serverAddress]");
                 return;
         }
 
 
-        ChatClient client = new ChatClient(hostname,portNummer,username);
+        ChatClient client = new ChatClient(hostname, portNummer, username);
 
         client.startJob();
     }
@@ -168,11 +151,13 @@ public class ChatClient
         @Override
         public void run()
         {
-            while (true) {
+            while (!isLoggedOut) {
                 try {
                     String message = inFromServer.readLine();
-                    System.out.println(message);
-                    System.out.print(">");
+                    if (message != null) {
+                        System.out.println(message);
+                        System.out.print(">");
+                    }
                 } catch (IOException e) {
                     System.out.print("Server has closed connection");
                 }
