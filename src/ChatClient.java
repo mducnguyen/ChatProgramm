@@ -147,40 +147,42 @@ public class ChatClient
         int portNummer = 56789;
         String hostname = "localhost";
         String username = "someone";
-        
-        switch (args.length)
-        {
-        // > javac Client username portNumber serverAddr
-        case 3:
-            hostname = args[2];
-            // > javac Client username portNumber
-        case 2:
-            try
+
+        if (false) {
+            switch (args.length)
             {
-                portNummer = Integer.parseInt(args[1]);
-            }
-            catch (Exception e)
-            {
-                System.out.println("Invalid port number.");
+            // > javac Client username portNumber serverAddr
+            case 3:
+                hostname = args[2];
+                // > javac Client username portNumber
+            case 2:
+                try
+                {
+                    portNummer = Integer.parseInt(args[1]);
+                }
+                catch (Exception e)
+                {
+                    System.out.println("Invalid port number.");
+                    System.out.println(
+                            "Usage is: > java Client [username] [portNumber] [serverAddress]");
+                    return;
+                }
+                // > javac Client username
+            case 1:
+                username = args[0];
+                // > java Client
+                break;
+            // invalid number of arguments
+            // case 0:
+            //
+            // break;
+            default:
                 System.out.println(
-                        "Usage is: > java Client [username] [portNumber] [serverAddress]");
+                        "Usage is: > java Client [username] [portNumber] {serverAddress]");
                 return;
             }
-            // > javac Client username
-        case 1:
-            username = args[0];
-            // > java Client
-            break;
-        // invalid number of arguments
-        // case 0:
-        //
-        // break;
-        default:
-            System.out.println(
-                    "Usage is: > java Client [username] [portNumber] {serverAddress]");
-            return;
         }
-        
+
         ChatClient client = new ChatClient(hostname, portNummer, username);
         
         client.startJob();

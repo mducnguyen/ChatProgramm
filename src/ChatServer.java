@@ -70,7 +70,7 @@ public class ChatServer
     public synchronized void printChatHistory(ClientThread clientthread)
     {
         for (String s : chatHistory)
-            clientthread.writeToClient(s);
+            clientthread.writeToClient(s + "\r\n");
     }
     
     public synchronized void addClient(ClientThread clientThread)
@@ -171,7 +171,7 @@ public class ChatServer
                         new InputStreamReader(clientSocket.getInputStream()));
                 outToClient = new DataOutputStream(clientSk.getOutputStream());
                 username = inFromClient.readLine();
-                System.out.println(username + "has just joined the chatroom.");
+                System.out.println(username + " has just joined the chatroom.");
                 
             }
             catch (IOException e)
@@ -187,7 +187,7 @@ public class ChatServer
         @Override
         public void run()
         {
-            broadcast(username + "has just joined chatroom.");
+            broadcast(username + " has just joined chatroom.");
             boolean isLogoutRequested = false;
             String chatMessage = "";
             
