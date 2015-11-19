@@ -12,7 +12,10 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Chat-Server der Chat-Raum mit mehreren Nutzern zur Verfügung stellt.
- * 
+ * Verwaltet Clients (durch hinzufügen & entfernen in eine Liste)
+ * Stellt Chat-Verlauf zur Verfügung
+ * Verteilt Nachrichten von einem Client an alle anderen angemeldeten Clients
+ *
  * Created by DucNguyenMinh on 18.11.15.
  */
 public class ChatServer
@@ -20,8 +23,7 @@ public class ChatServer
     /* TCP-Server, der Verbindungsanfragen entgegennimmt */
     
     /* Semaphore begrenzt die Anzahl parallel laufender Worker-Threads */
-    public Semaphore                workerThreadsSem;
-                                    
+//    public Semaphore                workerThreadsSem;
     /* Portnummer */
     public final int                serverPort;
                                     
@@ -34,24 +36,22 @@ public class ChatServer
     private SimpleDateFormat        dateFormat;
                                     
     /**
-     * 
-     * @param serverPort
+     * @param serverPort Port auf dem ChatServer lauscht
      */
     public ChatServer(int serverPort)
     {
         this.serverPort = serverPort;
-        this.workerThreadsSem = new Semaphore(2);
+//        this.workerThreadsSem = new Semaphore(2);
         this.chatHistory = new LinkedList<String>();
         this.clients = new ArrayList<>();
         this.dateFormat = new SimpleDateFormat("HH:mm:ss");
     }
-    
-    public LinkedList<String> getChatHistory()
-    {
-        return chatHistory;
-    }
-    
-    /**/
+
+    /**
+     * Leitet die Nachricht an alle Clients, die sich im Chatraum befinden weiter.
+     * @param message zu verteilende Nachricht
+     */
+
     public synchronized void broadcast(String message)
     {
         String time = dateFormat.format(new Date());
@@ -64,23 +64,26 @@ public class ChatServer
         {
             client.writeToClient(msg);
         }
-    }
-    
-    //TODO geht noch nicht
-    public synchronized void printChatHistory(ClientThread clientthread)
+     }
+
+    /**
+     * Sendet den Chatverlauf ausschließlich an den ClientThread, der den spezifizierten "HISTORY."-Befehl aufgerufen hat
+     * @param clientthread ClientThread der Chatverlauf angefordert hat
+     */
+    private synchronized void printChatHistory(ClientThread clientthread)
     {
         for (String s : chatHistory)
             clientthread.writeToClient(s + "\r\n");
     }
     
-    public synchronized void addClient(ClientThread clientThread)
+    private synchronized void addClient(ClientThread clientThread)
     {
         clients.add(clientThread);
     }
     
-    public synchronized void removeClient(ClientThread clientThread)
+    private synchronized void removeClient(ClientThread clientThread)
     {
-        workerThreadsSem.release();
+//        workerThreadsSem.release();
         clients.remove(clientThread);
     }
     
@@ -110,7 +113,7 @@ public class ChatServer
                  * Verbindungsaufbau Standard-Socket erzeugen und an
                  * connectionSocket zuweisen
                  */
-                workerThreadsSem.acquire();
+//                workerThreadsSem.acquire();
                 clientSocket = welcomeSocket.accept();
                 /*
                  * Neuen Arbeits-Thread erzeugen und die Nummer, den Socket
@@ -147,7 +150,12 @@ public class ChatServer
         ChatServer myServer = new ChatServer(56789);
         myServer.startServer();
     }
-    
+
+    /**
+     * Für jeden  angemeldeten Client wird ein seperater ClientThrad erstellt.
+     * Der ClientThread verwaltet das dem Client zugeordneten Socket.
+     * Reagiert auf spezielle Clientbefehle ("LOGOUT.", "HISTORY.")
+     */
     class ClientThread extends Thread
     {
         
@@ -183,7 +191,12 @@ public class ChatServer
             
             date = new Date().toString() + "\n";
         }
-        
+
+        /**
+         * Fragt solange der ClientThread aktiv bleiben soll neue Nachrichten vom Nutzer ab.
+         * Interpretiert und reagiert auf spezielle Befehle.
+         *
+         */
         @Override
         public void run()
         {
@@ -207,7 +220,6 @@ public class ChatServer
                 if (chatMessage.equalsIgnoreCase("LOGOUT."))
                 {
                     String msg = username + " has left the room.";
-                    System.out.println(msg);
                     broadcast(msg);
                     isLogoutRequested = true;
                 }
@@ -220,9 +232,9 @@ public class ChatServer
                     broadcast(username + ": " + chatMessage);
                 }
             }
-            
-            removeClient(this);
+
             closeSocket();
+            removeClient(this);
         }
         
         /**
@@ -230,7 +242,7 @@ public class ChatServer
          * 
          * @param message
          */
-        public void writeToClient(String message)
+        private void writeToClient(String message)
         {
             try
             {
@@ -245,7 +257,7 @@ public class ChatServer
         /**
          * Schließt alle Input/Output-Streams und das Socket
          */
-        public void closeSocket()
+        private void closeSocket()
         {
             try
             {

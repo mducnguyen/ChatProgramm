@@ -148,7 +148,6 @@ public class ChatClient
         String hostname = "localhost";
         String username = "someone";
 
-        if (false) {
             switch (args.length)
             {
             // > javac Client username portNumber serverAddr
@@ -181,7 +180,6 @@ public class ChatClient
                         "Usage is: > java Client [username] [portNumber] {serverAddress]");
                 return;
             }
-        }
 
         ChatClient client = new ChatClient(hostname, portNummer, username);
         
@@ -189,7 +187,7 @@ public class ChatClient
         inFromUser.close();
         
     }
-    
+
     /**
      * Thread-Klasse, die das Lesen vom Chatserver seperat übernimmt
      */
@@ -206,7 +204,7 @@ public class ChatClient
                     if (message != null)
                     {
                         System.out.println(message);
-                        System.out.print(">");
+                        System.out.print("> ");
                     }
                 }
                 catch (IOException e)
@@ -215,6 +213,6 @@ public class ChatClient
                 }
             }
         }
-        
+
     }
 }
