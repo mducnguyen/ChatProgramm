@@ -103,7 +103,7 @@ public class ChatServer
                 // Worker-Threads erreicht
                 
                 System.out.println(
-                        "TCP Server is waiting for connection - listening TCP port "
+                        "Chat-Server is waiting for connection - listening TCP port "
                                 + serverPort);
                 /*
                  * Blockiert auf Verbindungsanfrage warten --> nach
